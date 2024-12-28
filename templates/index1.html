@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Adjust the size of the canvas */
+        #chart-container {
+            width: 600px;  /* Set the width */
+            height: 300px; /* Set the height */
+            margin-left: 0;  /* Center the chart */
+        }
+        .container {
+            display: flex;
+            justify-content: space-between; /* Distributes space equally */
+            align-items: center; /* Vertically center the items */
+            width: 100%;
+            height: 100vh; /* Full viewport height */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .left-div, .right-div {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 20px;
+            width: 45%; /* Each div takes up 45% of the container width */
+            text-align: center;
+        }
+    </style>
+    <title>Crypto Dashboard</title>
+</head>
+<body>
+
+    <h1>Crypto Dashboard</h1>
+    {% if spot_view %}
+
+        <h5>Last Updated: {{ spot_view.last_updated }}</h5>
+
+        <div class="container">
+            <div class="left-div">
+                <div id="chart-container">
+                    <canvas id="myPieChart"></canvas>
+                </div>
+            </div>
+            <div class="right-div">
+                 <table id="trades">
+                    <tr>
+                        <th>Total Cost</th>
+                        <td>{{ spot_view.total_cost }}</td>
+                        <th>PnL</th>
+                        <td class="{{spot_view.positive}}">{{ spot_view.pnl }}</td>
+                    </tr>
+                    <tr>
+                        <th>Market Value</th>
+                        <td class="{{spot_view.positive}}">{{ spot_view.total_market_cost }}</td>
+                        <th>PnL %</th>
+                        <td class="{{spot_view.positive}}">{{ spot_view.pnl_percent }} %</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Chart Data Started -->
+        <script>
+            // Pass data from Flask into JavaScript
+            const data = {
+                labels: {{ labels | tojson }},
+                datasets: [{
+                    data: {{ data_values | tojson }},
+                    backgroundColor: {{ background_colors | tojson }},
+                    borderColor: {{ border_colors | tojson }},
+                    borderWidth: 1
+                }]
+            };
+
+            // Create the pie chart
+            const ctx = document.getElementById('myPieChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie', // Chart type
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Allows custom sizing
+                    plugins: {
+                        legend: {
+                            position: 'left',
+                        },
+                    },
+                },
+            });
+        </script>
+
+        <!-- Chart Data Ended -->
+
+
+        <table id="trades">
+            <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Buy Price</th>
+                <th>Market Price</th>
+                <th>Positions</th>
+                <th>PNL</th>
+                <th>PNL %</th>
+            </tr>
+
+            {% for spot in spot_view.spot_orders %}
+            <tr>
+                <td>
+                    <div class="image-label-container">
+                        <img src="{{ spot.logo }}" alt="{{ spot.logo }}">
+                        <label>{{ spot.symbol }}</label>
+                    </div>
+                </td>
+                <td><a href="{{ spot.link }}" target="_blank">{{ spot.name }}</a></td>
+                <td>{{spot.buy_price}}</td>
+                <td>{{spot.market_price}}</td>
+                <td>{{spot.qty}}</td>
+                <td class="{{spot.positive}}"> {{ spot.pnl }} </td>
+                <td class="{{spot.positive}}">{{ spot.pnl_percent }} %</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <div>Portfolio is not setup.</div>
+    {% endif %}
+
+</body>
+</html>

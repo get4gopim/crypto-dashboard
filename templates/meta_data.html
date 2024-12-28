@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/style.css') }}">
+    <script src="script.js"></script>
+    <title>{{ meta_data.symbol }}</title>
+</head>
+<body>
+<div class="wrapper">
+
+    <h1>{{ meta_data.symbol }}</h1>
+
+    <table id="trades">
+        <tr>
+            <th>Symbol</th>
+            <td>
+                <div class="image-label-container">
+                    <img src="{{ meta_data.logo }}" alt="{{ meta_data.logo }}">
+                    <label>{{ meta_data.symbol }}</label>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th>Name</th>
+            <td>{{ meta_data.name }}</td>
+        </tr>
+        <tr>
+            <th>Category</th>
+            <td>{{meta_data.category}}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{meta_data.description}}</td>
+        </tr>
+        <tr>
+            <th>Positions</th>
+            <td>{{meta_data.symbol}}</td>
+        </tr>
+        <tr>
+            <th>Platform Id</th>
+            <td>{{meta_data.platform_id}}</td>
+        </tr>
+        <tr>
+            <th>Platform Name</th>
+            <td><a href="{{ meta_data.link }}" target="_blank">{{ meta_data.platform_name }}</a></td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

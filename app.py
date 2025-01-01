@@ -1,9 +1,15 @@
 import random, os
 
-from flask import Flask, jsonify, make_response, render_template, request, send_from_directory
+from flask import Flask, jsonify, make_response, render_template, request, send_from_directory, redirect, url_for
+from wtforms.fields.simple import StringField, SubmitField
+from wtforms.validators import DataRequired
+
+from model import SpotTrade
 from service import CryptoService
+from flask_wtf import FlaskForm
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = '9bda71c7b88e4a60a0c9c8d1abbeef7e'
 
 @app.route('/favicon.ico')
 def favicon():
@@ -41,6 +47,10 @@ def spot_view(pname):
                            background_colors=background_colors, border_colors=border_colors, portfolio=portfolio)
 
 
+@app.route("/api/v1/dashboard/<string:pname>", methods=['GET'])
+def api_dashboard(pname):
+    spot_view = CryptoService.get_spot_view(pname)
+    return jsonify(spot_view.to_dict())
 
 @app.route('/dashboard', methods=['GET'])
 def index():
@@ -63,3 +73,46 @@ def hello():
 @app.errorhandler(404)
 def resource_not_found(e):
     return make_response(jsonify(error='Not found!'), 404)
+
+
+# Route for adding a new item
+@app.route('/add_spot', methods=['GET', 'POST'])
+def add_spot():
+    form = SpotTradeForm()
+    if form.validate_on_submit():
+        new_item = SpotTrade.SpotTrade(id=None, coin_marketcap_id=None, symbol=form.symbol.data, buy_price=form.buyPrice.data, quantity=form.qty.data, logo=None, portfolioId=form.portfolioId.data)
+        #db.session.add(new_item)
+        #db.session.commit()
+        CryptoService.save_spot_trade(new_item)
+        #flash('Item added successfully!', 'success')
+        #return redirect(url_for('edit_spot', spot_id=new_item.id))
+        return redirect(url_for('add_spot'))
+
+    return render_template('add_spot.html', form=form)
+
+
+@app.route('/edit_spot/<string:spot_id>', methods=['GET', 'POST'])
+def edit_spot(spot_id):
+    # Fetch the item from the database
+    item = CryptoService.get_spot_trade(spot_id)
+    form = SpotTradeForm(obj=item)  # Populate form with existing data
+
+    if form.validate_on_submit():
+        # Update the item's details
+        #item.symbol = form.symbol.data
+        item.buy_price = form.buyPrice.data
+        item.quantity = form.qty.data
+
+        CryptoService.save_spot_trade(item)
+        #db.session.commit()
+        #flash('Item updated successfully!', 'success')
+        return redirect(url_for('edit_spot', spot_id=item.id))  # Redirect to edit page
+
+    return render_template('edit_spot.html', form=form, item=item)
+
+class SpotTradeForm(FlaskForm):
+    portfolioId = StringField('Portfolio Id', validators=[DataRequired()])
+    symbol = StringField('Symbol', validators=[DataRequired()])
+    buyPrice = StringField('Buy Price', validators=[DataRequired()])
+    qty = StringField('Quantity', validators=[DataRequired()])
+    submit = SubmitField('Submit')

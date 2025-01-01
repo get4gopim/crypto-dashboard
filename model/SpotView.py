@@ -10,3 +10,8 @@ class SpotView:
 
     def __str__(self):
         return f"SpotView(total_cost={self.total_cost}, total_market_cost={self.total_market_cost}, pnl={self.pnl}, pnl_percent={self.pnl_percent})"
+
+    def to_dict(self):
+        """Convert the object to a dictionary."""
+        spot_order_dicts = [spot_order.to_dict() for spot_order in self.spot_orders]
+        return {"total_cost": self.total_cost, "total_market_cost": self.total_market_cost, "pnl": self.pnl, "pnl_percent": self.pnl_percent, "positive": self.positive, "last_updated": self.last_updated, "spot_orders": spot_order_dicts}

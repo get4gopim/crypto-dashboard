@@ -20,3 +20,7 @@ class SpotOrder:
 
     def __str__(self):
         return f"SpotOrder(cid={self.cid}, symbol={self.symbol}, name={self.name}, market_price={self.market_price}, buy_price={self.buy_price}, qty={self.qty}, pnl={self.pnl}, pnl_percent={self.pnl_percent}, last_updated={self.last_updated}, positive={self.positive})"
+
+    def to_dict(self):
+        """Convert the object to a dictionary."""
+        return {"cid": self.cid, "symbol": self.symbol, "name": self.name, "logo": self.logo, "market_price": self.market_price, "buy_price": self.buy_price, "qty": self.qty, "est_cost": self.est_cost, "est_market_cost": self.est_market_cost, "pnl": self.pnl, "pnl_percent": self.pnl_percent, "positive": self.positive, "last_updated": self.last_updated, "link": self.link}

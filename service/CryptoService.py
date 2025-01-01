@@ -23,8 +23,10 @@ api_key = "ecc1d428-d19e-4d84-8f61-2f7f612b3ec4"
 coin_market_timeout = 60
 
 saganavis_api_host = "https://api.saganavis.xyz"
-trade_path = "/v1/rates/spotTrade/{portfolioName}"
+trade_path = "/v1/rates/spotTrade/portfolio/{portfolioName}"
 portfolio_path = '/v1/rates/portfolio/{portfolioName}'
+spot_trade_get_path = "/v1/rates/spotTrade/{spotId}"
+spot_trade_post_path = "/v1/rates/spotTrade"
 saganavis_api_timeout = 50
 
 
@@ -32,7 +34,7 @@ def parse_trades(response):
     trades = []
     items = json.loads(response.content)
     for x in items:
-        info = SpotTrade.SpotTrade(x['id'], x['cid'], x['symbol'], x['buyPrice'], x['qty'], x['imgUrl'])
+        info = SpotTrade.SpotTrade(x['id'], x['cid'], x['symbol'], x['buyPrice'], x['qty'], x['imgUrl'], x['portfolioId'])
         trades.append(info)
     return trades
 
@@ -60,6 +62,33 @@ def get_all_spot_trades(portfolio_name):
     except Exception as ex:
         log.error(f"Error connecting stock trade uri: {ex}")
 
+def save_spot_trade(spot_trade):
+    try:
+        headers = {"Content-Type": "application/json"}
+        # Convert the class object to a dictionary using __dict__
+        #json_spot_trade = spot_trade.__dict__
+        json_spot_trade = json.dumps(spot_trade.to_dict())
+
+        log.info(json_spot_trade)
+        spot_trade_post_api = saganavis_api_host + spot_trade_post_path
+        log.info(spot_trade_post_api)
+        response = requests.post(spot_trade_post_api, json=json_spot_trade, headers=headers)
+        print("Response Text:", response.text)
+        print("Response headers:",response.headers)
+
+        try:
+            response_data = response.json()
+            print(response_data)
+        except ValueError:
+            print("No JSON data in response")
+
+        if response.status_code == 200:
+            print("Post created successfully!")
+            print("Response JSON:", response.json())
+        else:
+            print("Failed to create post:", response.status_code)
+    except Exception as ex:
+        log.error(f"Error save connecting stock trade uri: {ex}")
 
 def parse_portfolio(response):
     #log.info(response.content)
@@ -182,6 +211,33 @@ def get_all_spot_orders(portfolio_name):
                     spot_orders.append(spot_order_info)
 
     return spot_orders
+
+
+def parse_spot_trade(response):
+    x = json.loads(response.content)
+    # log.info(x)
+    return SpotTrade.SpotTrade(x['id'], x['cid'], x['symbol'], x['buyPrice'], x['qty'], x['imgUrl'], x['portfolioId'])
+
+
+def get_spot_trade(spot_id):
+    spot_trade = None
+    try:
+        get_spot_api = saganavis_api_host + spot_trade_get_path
+        path_params = {"spotId": spot_id}
+
+        # Format the URL with the path parameter
+        formatted_url = get_spot_api.format(**path_params)
+        log.info(formatted_url)
+
+        response = requests.get(formatted_url, timeout=saganavis_api_timeout)
+        if response.status_code == 200:
+            spot_trade = parse_spot_trade(response)
+        response.close()
+        return spot_trade
+    except Exception as ex:
+        log.error(f"Error connecting get spot trade uri: regx{ex}")
+        print(print(traceback.format_exc()))
+
 
 if __name__ == "__main__":
     log.info("MAIN started")

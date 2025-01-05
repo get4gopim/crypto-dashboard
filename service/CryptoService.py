@@ -1,4 +1,6 @@
 import logging
+import os
+
 import requests
 import json
 import traceback
@@ -62,25 +64,48 @@ def get_all_spot_trades(portfolio_name):
     except Exception as ex:
         log.error(f"Error connecting stock trade uri: {ex}")
 
+
+def delete_spot_trade(spot_id):
+    try:
+        headers = {"Content-Type": "application/json"}
+        spot_trade_delete_api = saganavis_api_host + spot_trade_get_path
+        path_params = {"spotId": spot_id}
+
+        # Format the URL with the path parameter
+        formatted_url = spot_trade_delete_api.format(**path_params)
+        print("Delete API: ", formatted_url)
+
+        response = requests.delete(formatted_url, headers=headers)
+        print("Response code:", response.status_code)
+
+        if response.status_code == 200:
+            print("Item deleted successfully!")
+        else:
+            print("Failed to create post:", response.status_code)
+
+    except Exception as ex:
+        log.error(f"Error save connecting stock trade uri: {ex}")
+
 def save_spot_trade(spot_trade):
     try:
         headers = {"Content-Type": "application/json"}
-        # Convert the class object to a dictionary using __dict__
-        #json_spot_trade = spot_trade.__dict__
-        json_spot_trade = json.dumps(spot_trade.to_dict())
+
+        # Data to be sent as JSON (Python dictionary)
+        json_spot_trade = {
+            "id": spot_trade.id,
+            "cid": spot_trade.coin_marketcap_id,
+            "symbol": spot_trade.symbol,
+            "buyPrice": str(spot_trade.buy_price),  # or use a float if needed
+            "qty": str(spot_trade.quantity),
+            "portfolioId": spot_trade.portfolioId,
+            "updatePrice": spot_trade.updatePrice
+        }
 
         log.info(json_spot_trade)
         spot_trade_post_api = saganavis_api_host + spot_trade_post_path
         log.info(spot_trade_post_api)
         response = requests.post(spot_trade_post_api, json=json_spot_trade, headers=headers)
         print("Response Text:", response.text)
-        print("Response headers:",response.headers)
-
-        try:
-            response_data = response.json()
-            print(response_data)
-        except ValueError:
-            print("No JSON data in response")
 
         if response.status_code == 200:
             print("Post created successfully!")
@@ -206,7 +231,7 @@ def get_all_spot_orders(portfolio_name):
         for spot in spot_trades:
             for quote in quotes:
                 if spot.coin_marketcap_id == quote.cid:
-                    spot_order_info = SpotOrder.SpotOrder(spot.coin_marketcap_id, spot.symbol, quote.name, spot.logo, quote.price, spot.buy_price, spot.quantity, quote.last_updated)
+                    spot_order_info = SpotOrder.SpotOrder(spot.id, spot.coin_marketcap_id, spot.symbol, quote.name, spot.logo, quote.price, spot.buy_price, spot.quantity, quote.last_updated)
                     #log.info (spot_order_info)
                     spot_orders.append(spot_order_info)
 
@@ -241,6 +266,7 @@ def get_spot_trade(spot_id):
 
 if __name__ == "__main__":
     log.info("MAIN started")
+    print (os.urandom(24).hex())
     # spot_view = get_spot_view("Abdul")
     # if spot_view:
     #     for spot_order in spot_view.spot_orders:

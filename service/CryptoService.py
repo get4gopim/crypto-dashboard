@@ -24,13 +24,14 @@ coin_marketcap_host = "https://pro-api.coinmarketcap.com"
 api_key = "ecc1d428-d19e-4d84-8f61-2f7f612b3ec4"
 coin_market_timeout = 60
 
-saganavis_api_host = "https://api.saganavis.xyz"
+#saganavis_api_host = "https://api.saganavis.xyz"
+saganavis_api_host = "http://api.saganavis.co.in"
 trade_path = "/v1/rates/spotTrade/portfolio/{portfolioName}"
 portfolio_path = '/v1/rates/portfolio/{portfolioName}'
 spot_trade_get_path = "/v1/rates/spotTrade/{spotId}"
 spot_trade_post_path = "/v1/rates/spotTrade"
 saganavis_api_timeout = 50
-
+all_trade_path = "/v1/rates/tradeLatest/{portfolioName}"
 
 def parse_trades(response):
     trades = []
@@ -266,11 +267,12 @@ def get_spot_trade(spot_id):
 
 if __name__ == "__main__":
     log.info("MAIN started")
-    print (os.urandom(24).hex())
-    # spot_view = get_spot_view("Abdul")
-    # if spot_view:
-    #     for spot_order in spot_view.spot_orders:
-    #         log.info(spot_order)
+    #print (os.urandom(24).hex())
+    #spot_view = get_spot_view("Abdul")
+    #if spot_view:
+         #s = sorted(spot_view.spot_orders, key=lambda x: x.pnl, reverse=True)
+         #for spot_order in s:
+             #log.info(spot_order)
     #log.info(get_meta_data(1361))
 
 

@@ -1,6 +1,3 @@
-from decimal import Decimal
-
-
 class SpotTrade:
     def __init__(self, id, coin_marketcap_id, symbol, buy_price, quantity, logo, portfolioId, updatePrice=False):
         self.id = id

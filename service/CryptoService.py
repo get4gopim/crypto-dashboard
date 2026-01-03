@@ -33,18 +33,29 @@ spot_trade_post_path = "/v1/rates/spotTrade"
 saganavis_api_timeout = 50
 all_trade_path = "/v1/rates/tradeLatest/{portfolioName}"
 
+
 def parse_trades(response):
-    trades = []
+    spot_orders = []
     items = json.loads(response.content)
     for x in items:
-        info = SpotTrade.SpotTrade(x['id'], x['cid'], x['symbol'], x['buyPrice'], x['qty'], x['imgUrl'], x['portfolioId'])
-        trades.append(info)
-    return trades
+        spot = x['spotTrade']
+        coin = x['coinData']
+        spot_trade = SpotTrade.SpotTrade(spot['id'], spot['cid'], spot['symbol'], spot['buyPrice'], spot['qty'], spot['imgUrl'], spot['portfolioId'])
+        quote = Quote.Quote(coin['id'], coin['symbol'], coin['name'], coin['price'], coin['lastUpdated'])
+        spot_order_info = SpotOrder.SpotOrder(spot_trade.id, spot_trade.coin_marketcap_id, spot_trade.symbol, quote.name, spot_trade.logo,
+                                              quote.price, spot_trade.buy_price, spot_trade.quantity, quote.last_updated)
+        spot_orders.append(spot_order_info)
+
+    if len(spot_orders) > 0:
+        return SpotView.SpotView(spot_orders)
+    else:
+        return None
+
 
 def get_all_spot_trades(portfolio_name):
     trades = []
     try:
-        trade_api = saganavis_api_host + trade_path
+        trade_api = saganavis_api_host + all_trade_path
         #log.info(trade_api)
         # Define the path parameter
         path_params = {"portfolioName": portfolio_name}
@@ -215,28 +226,26 @@ def get_meta_data(cid):
     except Exception as ex:
         log.error(f"Error connecting CMC meta data api: {ex}")
 
+
 def get_spot_view(portfolio_name):
-    spot_orders = get_all_spot_orders(portfolio_name)
-    if len(spot_orders) > 0:
-        return SpotView.SpotView(spot_orders)
-    else:
-        return None
+    return get_all_spot_trades(portfolio_name)
 
-def get_all_spot_orders(portfolio_name):
-    spot_orders = []
-    spot_trades = get_all_spot_trades(portfolio_name)
-    if len(spot_trades) > 0:
-        coin_market_ids = [trade.coin_marketcap_id for trade in spot_trades]
-        quotes = get_crypto_rates(coin_market_ids)
 
-        for spot in spot_trades:
-            for quote in quotes:
-                if spot.coin_marketcap_id == quote.cid:
-                    spot_order_info = SpotOrder.SpotOrder(spot.id, spot.coin_marketcap_id, spot.symbol, quote.name, spot.logo, quote.price, spot.buy_price, spot.quantity, quote.last_updated)
-                    #log.info (spot_order_info)
-                    spot_orders.append(spot_order_info)
-
-    return spot_orders
+# def get_all_spot_orders(portfolio_name):
+#     spot_orders = []
+#     spot_trades = get_all_spot_trades(portfolio_name)
+#     if len(spot_trades) > 0:
+#         coin_market_ids = [trade.coin_marketcap_id for trade in spot_trades]
+#         quotes = get_crypto_rates(coin_market_ids)
+#
+#         for spot in spot_trades:
+#             for quote in quotes:
+#                 if spot.coin_marketcap_id == quote.cid:
+#                     spot_order_info = SpotOrder.SpotOrder(spot.id, spot.coin_marketcap_id, spot.symbol, quote.name, spot.logo, quote.price, spot.buy_price, spot.quantity, quote.last_updated)
+#                     #log.info (spot_order_info)
+#                     spot_orders.append(spot_order_info)
+#
+#     return spot_orders
 
 
 def parse_spot_trade(response):
